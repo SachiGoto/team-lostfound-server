@@ -1,0 +1,267 @@
+
+require('dotenv').config({path: './config/.env'})
+const express = require('express');
+const bodyParser= require('body-parser');
+const cloudinary = require("./middleware/cloudinary");
+const upload = require("./middleware/multer");
+const fs = require('fs');
+const cors = require('cors');
+const multer = require('multer');
+const path = require('path');
+
+const app = express();
+app.use(cors());
+// app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json());
+app.use(express.json());
+app.set('view engine', 'ejs');
+app.use(express.static('uploads'));
+  
+let PORT = 3000;
+
+
+
+const MongoClient = require('mongodb').MongoClient;
+
+// const connectionString = "mongodb+srv://sachi:1234@cluster0.2wopzod.mongodb.net/?retryWrites=true&w=majority";
+const connectionString = process.env.DB_STRING;
+MongoClient.connect(connectionString, {useUnifiedTopology:true})
+  .then(client => {
+    console.log('Connected to Database')
+    const db = client.db('lostFound')
+    const items = db.collection('items')
+
+    app.get('/', (req,res)=>{
+
+    db.collection('items').find().toArray()
+    .then(results=>{
+       res.json(results);
+      // res.render('index.ejs');
+        // res.render('');
+    })
+    .catch(error=> console.error(error))
+    })
+
+
+    app.post('/upload', upload.single("image"), async (req, res)=>{
+     console.log("Hello")
+      console.log("/upload req " , req.file)
+       const result = await cloudinary.uploader.upload(req.file.path);
+       console.log("clourinary image " , result);
+      
+          console.log("req.file is " , req.file);
+          console.log("Hello")
+             res.json({fileupload:true, file:req.file});
+          items.insertOne({image:result.secure_url})
+            
+             
+        });
+      
+      
+    
+
+
+
+
+    app.post('/newItem',upload.single("image"), (req, res) => {
+//       const result = await cloudinary.uploader.upload(req.file.path);
+//  console.log("clourinary image " , result);
+//   console.log("newItem / req.file ", req.file);
+//     console.log("req.file is " , req.file);
+      try{
+        // const result = await cloudinary.uploader.upload(req.file.path);
+        //  console.log("req.file is " , req.file.path);
+        //  res.json({fileupload:true, file:req.file});
+         let title = req.body.title,
+         // image = result.secure_url,
+         // image = cloudinaryImage.secure_url,
+         location = req.body.location,
+         description=req.body.description,
+         date_found = req.body.date_found,
+         identifying_question=req.body. identifying_question,
+         claimed=req.body.claimed,
+         contact_name=req.body.contact_name,
+         email=req.body.email,
+         phonenumber=req.body.phonenumber
+
+         items.insertOne({
+          title: title, 
+          image:req.body.image,
+          location:location,
+          description:description,
+          date_found:date_found,
+          identifying_question:identifying_question,
+          claimed:claimed,
+          contact_name:contact_name,
+          email:email,
+          phonenumber:phonenumber,
+          date:new Date()
+        })
+
+    // console.log("req.file is " , req.file);
+      }catch(err){
+        console.log(err)
+      }
+     
+    //  console.log(res.json({fileupload:true, file:req.file}))
+    // res.json(req.file);
+    //     console.log(req.body);
+    // console.log(cloudinaryImage);
+ 
+            
+            
+        // try{
+        //   await items.insertOne({
+        //     title: title, 
+        //     image:result.secure_url,
+        //     location:location,
+        //     description:description,
+        //     date_found:date_found,
+        //     identifying_question:identifying_question,
+        //     claimed:claimed,
+        //     contact_name:contact_name,
+        //     email:email,
+        //     phonenumber:phonenumber,
+        //     date:new Date()
+        //   }) 
+        //   }catch(err){
+        //     console.log(err)
+        // }
+   
+          // .then(result => {
+          //   // res.redirect('/');
+          //   res.json({
+          //       message:"successful",
+          //       result:result
+          //   })
+          //   console.log(result)
+          // })
+          // .catch(error => console.error(error))
+      })
+    
+
+  
+
+      app.put('/editItem/:id', (req,res)=>{
+        // console.log(req.body);
+        const ObjectId = require("mongodb").ObjectId;
+        db.collection('items').updateOne({_id:ObjectId(req.params.id)},{
+    
+         $set:{
+
+          title : req.body.title,
+          image : req.body.image,
+          location : req.body.location,
+          description : req.body.description,
+          date_found : req.body.date_found,
+          identifying_question : req.body. identifying_question,
+          claimed : req.body.claimed,
+          contact_name : req.body.contact_name,
+          email : req.body.email,
+          phonenumber : req.body.phonenumber
+            // date:new Date()
+         }
+         })
+         .then(result=>{
+          console.log('completed');
+          res.json({result:result})
+         })
+         .catch(error => console.error(error))
+    
+      
+      })
+
+      app.delete('/deleteItem/:id',(req,res)=>{
+   
+        const ObjectId = require("mongodb").ObjectId;
+        let id = req.params.id;
+        // console.log("req.body.task is " ,req.body.id);
+        db.collection('items').deleteOne({_id:ObjectId(id)})
+        .then(result=>{
+            console.log( 'deleted')
+            res.json( result)
+    
+        })
+        .catch(error=> console.log(error));
+      })
+
+
+  
+    
+    
+    })
+
+
+  //  app.use("/test", postRoutes);
+  // app.post("/uploadImage", upload.single("image"), (req,res)=>{
+    // const result = cloudinary.uploader.upload(req.file.path);
+    // console.log(req);
+    // items.insertOne({
+    //   image:image
+    // })
+    // .then(result=>{
+    //   console.log(result)
+    // })
+    
+  // })
+
+    // async function uploadToCloudinary(locaFilePath) {
+    //   // locaFilePath :
+    //   // path of image which was just uploaded to "uploads" folder
+    //   var mainFolderName = "main"
+    //   var filePathOnCloudinary = mainFolderName + "/" + locaFilePath
+    //   // filePathOnCloudinary :
+    //   // path of image we want when it is uploded to cloudinary
+    //   return cloudinary.uploader.upload(locaFilePath,{"public_id":filePathOnCloudinary})
+    //   .then((result) => {
+    //     // Image has been successfully uploaded on cloudinary
+    //     // So we dont need local image file anymore
+    //     // Remove file from local uploads folder 
+    //     fs.unlinkSync(locaFilePath)
+        
+    //     return {
+    //       message: "Success",
+    //       url:result.url
+    //     };
+    //   }).catch((error) => {
+    //     // Remove file from local uploads folder 
+    //     fs.unlinkSync(locaFilePath)
+    //     return {message: "Fail",};
+    //   });
+    // }
+
+
+    // app.post('/profile-upload-single', upload.single('profile-file'), async (req, res, next) => {
+    //   // req.file is the `profile-file` file
+    //   // req.body will hold the text fields, if there were any
+    //   var locaFilePath = req.file.path
+    //   var result = await uploadToCloudinary(locaFilePath)
+    //   var response = buildSuccessMsg([result.url])
+    //   return res.send(response)
+    // })
+
+    // const storage = multer.diskStorage({
+    //   destination:function(req, file,cb){
+    //     cb(null, './uploads')
+    //   },
+    //   filename:function(req,file,cb){
+    //     cb(null, file.originalname)
+    //   }
+    // })
+
+    // const fileupload = multer({storage:storage})
+    // console.log("fileupload ", fileupload)
+
+
+  
+    // console.log(cloudinaryImage);
+
+    // app.get("/test", (req,res)=>{
+    //   res.render('index.ejs');
+    // })
+
+
+app.listen(process.env.PORT,()=>{
+    console.log(`Server running on port ${PORT}`)
+  });

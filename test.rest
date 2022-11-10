@@ -1,0 +1,70 @@
+@url = http://localhost:3000
+# @url = https://lostandfoundapis.herokuapp.com
+
+
+# GET http://localhost:3000/
+
+POST {{url}}/upload-images/
+
+
+###
+GET {{url}}
+###
+# POST http://localhost:3000/newItem
+
+
+###
+POST {{url}}/upload
+Content-Type:application/json
+
+
+{
+    "test":"test"
+}
+
+
+
+###
+POST {{url}}/newItem
+Content-Type:application/json
+
+
+{
+"title": "House keys",
+"image": "https://images.unsplash.com/flagged/photo-1564767609342-620cb19b2357?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1673&q=80",
+"location": "Vancouver",
+"description": "Two house keys with a house key chain",
+"identifying_question": "What is written on the back of the house key chain?",
+"claimed": false,
+"contact_name": "James Clear",
+"email": "jamesm@gmail.com",
+"phonenumber": "123-395-4793",
+"date": "2022-11-02T03:15:37.465Z",
+"date_found": "2022/08/03"
+}
+
+###
+
+# Put http://localhost:3000/editItem/6356d973b79935b6358eba84
+Put {{url}}/editItem/63620db453a00f2715f1666e
+Content-Type:application/json
+
+
+{  
+     "title": "testing again", 
+    "image":"https://assets.bwbx.io/images/users/iqjWHBFdfxIU/i9lAXqwqruss/v1/1200x-1.jpg",
+    "location":"Richimond",
+    "description":"Grey color ",
+    "date_found":"2021/10/15",
+    "identifying_question":"what is the color of the iphone case?",
+    "claimed":false,
+    "contact_name":"James Clear",
+    "email":"sachi@sachi.com",
+    "phonenumber":"123-456-7890"
+}
+
+
+###
+
+# DELETE http://localhost:3000/deleteItem/6356d5ca60839b9f1deebcbd
+DELETE {{url}}/deleteItem/63620db453a00f2715f1666e
